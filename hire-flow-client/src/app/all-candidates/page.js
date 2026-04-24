@@ -19,7 +19,15 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogOverlay,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Table,
   TableBody,
@@ -70,11 +78,35 @@ const getInitials = (name = "") =>
     .map((part) => part[0]?.toUpperCase())
     .join("");
 
+const MAX_SKILLS_TEXT_LENGTH = 85;
+
+const getSkillsText = (skills = []) => (Array.isArray(skills) ? skills.join(", ") : "");
+
+const truncateText = (text, maxLength) => {
+  if (!text) return "-";
+  if (text.length <= maxLength) return text;
+  return `${text.slice(0, maxLength)}...`;
+};
+
+const initialCandidateForm = {
+  name: "",
+  email: "",
+  phone_no: "",
+  experience: "",
+  skills: "",
+  role: "",
+  resume_url: "",
+  bio: "",
+};
+
 export default function AllCandidatesPage() {
   const [candidates, setCandidates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [form, setForm] = useState(initialCandidateForm);
 
   const filteredRows = useMemo(() => {
     const query = searchTerm.trim().toLowerCase();
@@ -114,6 +146,55 @@ export default function AllCandidatesPage() {
   useEffect(() => {
     fetchCandidates();
   }, []);
+
+  const handleFormChange = (event) => {
+    const { name, value } = event.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleCreateCandidate = async (event) => {
+    event.preventDefault();
+    setIsSubmitting(true);
+    setErrorMessage("");
+
+    const payload = {
+      name: form.name.trim(),
+      email: form.email.trim(),
+      phone_no: form.phone_no.trim(),
+      experience: form.experience ? Number(form.experience) : undefined,
+      skills: form.skills
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean),
+      role: form.role
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean),
+      resume_url: form.resume_url.trim() || undefined,
+      bio: form.bio.trim() || undefined,
+    };
+
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/candidates`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorBody = await response.json().catch(() => ({}));
+        throw new Error(errorBody.message || "Failed to create candidate");
+      }
+
+      setIsDialogOpen(false);
+      setForm(initialCandidateForm);
+      await fetchCandidates();
+    } catch (error) {
+      setErrorMessage(error?.message || "Unable to add candidate");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="flex min-h-screen flex-col bg-white text-slate-900 md:flex-row">
@@ -156,9 +237,12 @@ export default function AllCandidatesPage() {
                   Track candidate profiles, status, and skills in one place.
                 </p>
               </div>
-              <Button variant="outline" onClick={fetchCandidates}>
-                Refresh
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" onClick={fetchCandidates}>
+                  Refresh
+                </Button>
+                <Button onClick={() => setIsDialogOpen(true)}>+ Add Candidate</Button>
+              </div>
             </div>
             <div className="mt-5 grid gap-3 sm:grid-cols-3">
               <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
@@ -241,7 +325,17 @@ export default function AllCandidatesPage() {
                           {formatCandidateStatus(candidate.status)}
                         </span>
                       </TableCell>
-                      <TableCell>{(candidate.skills || []).join(", ") || "-"}</TableCell>
+                      <TableCell>
+                        <span
+                          className="inline-block max-w-[340px] truncate align-bottom"
+                          title={getSkillsText(candidate.skills)}
+                        >
+                          {truncateText(
+                            getSkillsText(candidate.skills),
+                            MAX_SKILLS_TEXT_LENGTH
+                          )}
+                        </span>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -250,6 +344,86 @@ export default function AllCandidatesPage() {
           )}
         </section>
       </main>
+
+      <Dialog open={isDialogOpen}>
+        <DialogOverlay onClick={() => setIsDialogOpen(false)} />
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Candidate</DialogTitle>
+          </DialogHeader>
+
+          <form className="grid gap-4" onSubmit={handleCreateCandidate}>
+            <Input
+              name="name"
+              value={form.name}
+              onChange={handleFormChange}
+              placeholder="Full name"
+              required
+            />
+            <Input
+              name="email"
+              value={form.email}
+              onChange={handleFormChange}
+              type="email"
+              placeholder="Email"
+              required
+            />
+            <Input
+              name="phone_no"
+              value={form.phone_no}
+              onChange={handleFormChange}
+              placeholder="Phone number"
+              required
+            />
+            <Input
+              name="experience"
+              value={form.experience}
+              onChange={handleFormChange}
+              type="number"
+              min="0"
+              placeholder="Experience in years"
+            />
+            <Input
+              name="skills"
+              value={form.skills}
+              onChange={handleFormChange}
+              placeholder="Skills (comma separated)"
+            />
+            <Input
+              name="role"
+              value={form.role}
+              onChange={handleFormChange}
+              placeholder="Role tags (comma separated)"
+            />
+            <Input
+              name="resume_url"
+              value={form.resume_url}
+              onChange={handleFormChange}
+              placeholder="Resume URL (optional)"
+            />
+            <Textarea
+              name="bio"
+              value={form.bio}
+              onChange={handleFormChange}
+              placeholder="Short bio (optional)"
+            />
+
+            <div className="mt-1 flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsDialogOpen(false)}
+                disabled={isSubmitting}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "Saving..." : "Save Candidate"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

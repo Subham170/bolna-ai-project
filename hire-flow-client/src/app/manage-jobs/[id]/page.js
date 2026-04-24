@@ -1,24 +1,5 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
-import { useParams } from "next/navigation";
-import {
-  FaBriefcase,
-  FaCalendarAlt,
-  FaCog,
-  FaTasks,
-  FaTachometerAlt,
-  FaUsers,
-} from "react-icons/fa";
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -29,6 +10,14 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
+  Sidebar,
+  SidebarContent,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from "@/components/ui/sidebar";
+import {
   Table,
   TableBody,
   TableCell,
@@ -36,6 +25,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import {
+  FaBriefcase,
+  FaCalendarAlt,
+  FaCog,
+  FaTachometerAlt,
+  FaTasks,
+  FaUsers,
+} from "react-icons/fa";
 
 const navItems = [
   { label: "Dashboard", href: "/" },
@@ -55,7 +55,8 @@ const iconByLabel = {
   Settings: FaCog,
 };
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+const BACKEND_URL =
+  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
 
 const formatCandidateStatus = (status) => {
   if (status === "SCREENING_SCORE") return "Screening Score";
@@ -90,10 +91,12 @@ function MatchingLoader() {
     <div className="mt-6 flex min-h-[55vh] items-center justify-center rounded-2xl border border-slate-200 bg-white/85 p-6 shadow-sm">
       <div className="w-full max-w-md text-center">
         <div className="mx-auto h-14 w-14 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600" />
-        <h2 className="mt-5 text-xl font-semibold text-slate-900">Matching candidates...</h2>
+        <h2 className="mt-5 text-xl font-semibold text-slate-900">
+          Matching candidates...
+        </h2>
         <p className="mt-2 text-sm text-slate-600">
-          We are comparing candidate profiles with the job description and ranking the
-          best matches.
+          We are comparing candidate profiles with the job description and
+          ranking the best matches.
         </p>
         <div className="mt-5 h-2 w-full overflow-hidden rounded-full bg-slate-200">
           <div className="h-full w-1/3 animate-pulse rounded-full bg-blue-500" />
@@ -146,9 +149,10 @@ export default function ManageJobDetailsPage() {
   const skillMatchedCandidates = useMemo(
     () =>
       matches.filter(
-        (entry) => Array.isArray(entry.matchedSkills) && entry.matchedSkills.length > 0
+        (entry) =>
+          Array.isArray(entry.matchedSkills) && entry.matchedSkills.length > 0,
       ),
-    [matches]
+    [matches],
   );
 
   const filteredRows = useMemo(() => {
@@ -200,7 +204,9 @@ export default function ManageJobDetailsPage() {
     <div className="flex min-h-screen flex-col bg-white text-slate-900 md:flex-row">
       <Sidebar className="md:min-h-screen">
         <SidebarHeader>
-          <div className="text-2xl font-bold tracking-wide text-blue-700">HireFlow</div>
+          <div className="text-2xl font-bold tracking-wide text-blue-700">
+            HireFlow
+          </div>
           <p className="mt-1 text-xs uppercase tracking-[0.25em] text-slate-500">
             Recruitment Suite
           </p>
@@ -226,7 +232,10 @@ export default function ManageJobDetailsPage() {
 
       <main className="flex flex-1 overflow-x-auto p-4 md:p-8">
         <section className="w-full p-2 md:p-6">
-          <Link href="/manage-jobs" className="text-sm font-medium text-blue-700 hover:underline">
+          <Link
+            href="/manage-jobs"
+            className="text-sm font-medium text-blue-700 hover:underline"
+          >
             ← Back to Manage Jobs
           </Link>
 
@@ -248,7 +257,9 @@ export default function ManageJobDetailsPage() {
                     <h1 className="text-3xl font-bold tracking-tight text-slate-900">
                       {job.title || "-"}
                     </h1>
-                    <p className="mt-1 text-sm text-slate-500">{job.company || "-"}</p>
+                    <p className="mt-1 text-sm text-slate-500">
+                      {job.company || "-"}
+                    </p>
                   </div>
                   <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
                     OPEN
@@ -256,24 +267,38 @@ export default function ManageJobDetailsPage() {
                 </div>
                 <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                   <div>
-                    <p className="text-xs uppercase tracking-wide text-slate-500">Department</p>
+                    <p className="text-xs uppercase tracking-wide text-slate-500">
+                      Department
+                    </p>
                     <p className="mt-1 text-sm font-medium text-slate-700">
                       {(job.role || []).join(", ") || "General"}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs uppercase tracking-wide text-slate-500">Account</p>
-                    <p className="mt-1 text-sm font-medium text-slate-700">{job.company || "-"}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs uppercase tracking-wide text-slate-500">Experience</p>
+                    <p className="text-xs uppercase tracking-wide text-slate-500">
+                      Account
+                    </p>
                     <p className="mt-1 text-sm font-medium text-slate-700">
-                      {typeof job.exp_req === "number" ? `${job.exp_req} years` : "-"}
+                      {job.company || "-"}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs uppercase tracking-wide text-slate-500">CTC Range</p>
-                    <p className="mt-1 text-sm font-medium text-slate-700">{job.ctc || "-"}</p>
+                    <p className="text-xs uppercase tracking-wide text-slate-500">
+                      Experience
+                    </p>
+                    <p className="mt-1 text-sm font-medium text-slate-700">
+                      {typeof job.exp_req === "number"
+                        ? `${job.exp_req} years`
+                        : "-"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-slate-500">
+                      CTC Range
+                    </p>
+                    <p className="mt-1 text-sm font-medium text-slate-700">
+                      {job.ctc || "-"}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -281,7 +306,9 @@ export default function ManageJobDetailsPage() {
               <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-4 py-3">
                   <div>
-                    <h2 className="text-lg font-semibold text-slate-900">AI Candidate Matches</h2>
+                    <h2 className="text-lg font-semibold text-slate-900">
+                      Candidate Match
+                    </h2>
                     <p className="text-xs text-slate-500">
                       Showing only candidates with skill overlap
                     </p>
@@ -310,19 +337,28 @@ export default function ManageJobDetailsPage() {
                   <TableBody>
                     {filteredRows.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={9} className="text-center text-slate-500">
+                        <TableCell
+                          colSpan={9}
+                          className="text-center text-slate-500"
+                        >
                           No skill-matched candidates found for this job.
                         </TableCell>
                       </TableRow>
                     ) : (
                       filteredRows.map((entry) => {
                         const candidate = entry.candidate || {};
-                        const hasTranscript = Boolean(entry?.callRecord?.transcript?.trim?.());
+                        const hasTranscript = Boolean(
+                          entry?.callRecord?.transcript?.trim?.(),
+                        );
                         const isCalling = callingCandidateId === candidate._id;
-                        const transcriptText = entry?.callRecord?.transcript || "";
+                        const transcriptText =
+                          entry?.callRecord?.transcript || "";
                         return (
                           <TableRow
-                            key={candidate._id || `${candidate.email}-${entry.matchPercent}`}
+                            key={
+                              candidate._id ||
+                              `${candidate.email}-${entry.matchPercent}`
+                            }
                             className="hover:bg-slate-50/80"
                           >
                             <TableCell className="font-medium text-slate-900">
@@ -333,18 +369,23 @@ export default function ManageJobDetailsPage() {
                                 <span>{candidate.name || "-"}</span>
                               </div>
                             </TableCell>
-                            <TableCell>{(entry.matchedSkills || []).join(", ") || "-"}</TableCell>
+                            <TableCell>
+                              {(entry.matchedSkills || []).join(", ") || "-"}
+                            </TableCell>
                             <TableCell>
                               <div className="w-24">
                                 <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-200">
                                   <div
                                     className={`h-full rounded-full ${getScoreBarClass(
-                                      entry.matchPercent ?? 0
+                                      entry.matchPercent ?? 0,
                                     )}`}
                                     style={{
                                       width: `${Math.max(
                                         0,
-                                        Math.min(100, Number(entry.matchPercent) || 0)
+                                        Math.min(
+                                          100,
+                                          Number(entry.matchPercent) || 0,
+                                        ),
                                       )}%`,
                                     }}
                                   />
@@ -364,7 +405,7 @@ export default function ManageJobDetailsPage() {
                             <TableCell>
                               <span
                                 className={`rounded-full px-2 py-1 text-xs font-medium ${getStatusPillClass(
-                                  candidate.status
+                                  candidate.status,
                                 )}`}
                               >
                                 {formatCandidateStatus(candidate.status)}
@@ -373,17 +414,27 @@ export default function ManageJobDetailsPage() {
                             <TableCell className="text-right">
                               <Button
                                 variant={hasTranscript ? "outline" : "default"}
-                                disabled={hasTranscript || isCalling || !candidate._id}
-                                onClick={() => handleInitiateCall(candidate._id)}
+                                disabled={
+                                  hasTranscript || isCalling || !candidate._id
+                                }
+                                onClick={() =>
+                                  handleInitiateCall(candidate._id)
+                                }
                               >
-                                {hasTranscript ? "Called" : isCalling ? "Calling..." : "Call"}
+                                {hasTranscript
+                                  ? "Called"
+                                  : isCalling
+                                    ? "Calling..."
+                                    : "Call"}
                               </Button>
                             </TableCell>
                             <TableCell className="text-right">
                               <Button
                                 variant="outline"
                                 disabled={!hasTranscript}
-                                onClick={() => openTranscriptModal(transcriptText)}
+                                onClick={() =>
+                                  openTranscriptModal(transcriptText)
+                                }
                               >
                                 Transcript
                               </Button>
@@ -404,7 +455,9 @@ export default function ManageJobDetailsPage() {
         <DialogOverlay onClick={() => setIsTranscriptOpen(false)} />
         <DialogContent className="max-h-[80vh] overflow-y-auto border-slate-200 bg-slate-50">
           <DialogHeader className="border-b border-slate-200 pb-3">
-            <DialogTitle className="text-xl">Candidate Call Transcript</DialogTitle>
+            <DialogTitle className="text-xl">
+              Candidate Call Transcript
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-3 py-2">
             {transcriptPreview
@@ -417,14 +470,19 @@ export default function ManageJobDetailsPage() {
                 const alignClass = isAgent
                   ? "justify-start"
                   : isCandidate
-                  ? "justify-end"
-                  : "justify-start";
+                    ? "justify-end"
+                    : "justify-start";
                 const bubbleClass = isCandidate
                   ? "bg-blue-600 text-white"
                   : "bg-white text-slate-800 ring-1 ring-slate-200";
                 return (
-                  <div key={`${line}-${index}`} className={`flex ${alignClass}`}>
-                    <div className={`max-w-[85%] rounded-lg px-3 py-2 text-sm ${bubbleClass}`}>
+                  <div
+                    key={`${line}-${index}`}
+                    className={`flex ${alignClass}`}
+                  >
+                    <div
+                      className={`max-w-[85%] rounded-lg px-3 py-2 text-sm ${bubbleClass}`}
+                    >
                       {line}
                     </div>
                   </div>
