@@ -85,6 +85,24 @@ const getInitials = (name = "") =>
     .map((part) => part[0]?.toUpperCase())
     .join("");
 
+function MatchingLoader() {
+  return (
+    <div className="mt-6 flex min-h-[55vh] items-center justify-center rounded-2xl border border-slate-200 bg-white/85 p-6 shadow-sm">
+      <div className="w-full max-w-md text-center">
+        <div className="mx-auto h-14 w-14 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600" />
+        <h2 className="mt-5 text-xl font-semibold text-slate-900">Matching candidates...</h2>
+        <p className="mt-2 text-sm text-slate-600">
+          We are comparing candidate profiles with the job description and ranking the
+          best matches.
+        </p>
+        <div className="mt-5 h-2 w-full overflow-hidden rounded-full bg-slate-200">
+          <div className="h-full w-1/3 animate-pulse rounded-full bg-blue-500" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function ManageJobDetailsPage() {
   const params = useParams();
   const jobId = params?.id;
@@ -179,8 +197,8 @@ export default function ManageJobDetailsPage() {
   };
 
   return (
-    <div className="flex min-h-screen bg-linear-to-br from-slate-100 to-slate-200 text-slate-900">
-      <Sidebar className="min-h-screen">
+    <div className="flex min-h-screen flex-col bg-white text-slate-900 md:flex-row">
+      <Sidebar className="md:min-h-screen">
         <SidebarHeader>
           <div className="text-2xl font-bold tracking-wide text-blue-700">HireFlow</div>
           <p className="mt-1 text-xs uppercase tracking-[0.25em] text-slate-500">
@@ -206,8 +224,8 @@ export default function ManageJobDetailsPage() {
         </SidebarContent>
       </Sidebar>
 
-      <main className="flex flex-1 p-6 md:p-8">
-        <section className="w-full p-6">
+      <main className="flex flex-1 overflow-x-auto p-4 md:p-8">
+        <section className="w-full p-2 md:p-6">
           <Link href="/manage-jobs" className="text-sm font-medium text-blue-700 hover:underline">
             ← Back to Manage Jobs
           </Link>
@@ -217,9 +235,7 @@ export default function ManageJobDetailsPage() {
               {errorMessage}
             </div>
           ) : loading ? (
-            <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
-              Loading job details...
-            </div>
+            <MatchingLoader />
           ) : !job ? (
             <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
               Job not found.

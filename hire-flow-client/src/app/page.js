@@ -36,8 +36,8 @@ const iconByLabel = {
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen bg-linear-to-br from-slate-100 to-slate-200 text-slate-900">
-      <Sidebar className="min-h-screen">
+    <div className="flex min-h-screen flex-col bg-white text-slate-900 md:flex-row">
+      <Sidebar className="md:min-h-screen">
         <SidebarHeader>
           <div className="text-2xl font-bold tracking-wide text-blue-700">HireFlow</div>
           <p className="mt-1 text-xs uppercase tracking-[0.25em] text-slate-500">
@@ -63,7 +63,7 @@ export default function Home() {
         </SidebarContent>
       </Sidebar>
 
-      <main className="flex flex-1 p-6 md:p-8">
+      <main className="flex flex-1 overflow-x-auto p-4 md:p-8">
         <section className="w-full">
           <div className="rounded-2xl border border-slate-200 bg-white/85 p-6 shadow-sm">
             <p className="text-xs uppercase tracking-[0.2em] text-blue-700">Dashboard</p>
