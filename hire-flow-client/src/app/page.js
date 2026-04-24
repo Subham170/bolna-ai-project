@@ -63,20 +63,49 @@ export default function Home() {
         </SidebarContent>
       </Sidebar>
 
-      <main className="flex flex-1 items-center justify-center p-8">
-        <div className="w-full max-w-4xl rounded-2xl border border-slate-200 bg-white/90 p-10 shadow-sm">
-          <h1 className="text-4xl font-bold tracking-tight text-slate-900">HireFlow</h1>
-          <p className="mt-3 max-w-xl text-slate-600">
-            Streamline your recruitment process with one place for candidate
-            management, interview tracking, and hiring workflows.
-          </p>
-          <div className="mt-8 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-8">
-            <p className="text-sm text-slate-500">
-              Click Manage Jobs in the sidebar to view all jobs from your
-              database.
+      <main className="flex flex-1 p-6 md:p-8">
+        <section className="w-full">
+          <div className="rounded-2xl border border-slate-200 bg-white/85 p-6 shadow-sm">
+            <p className="text-xs uppercase tracking-[0.2em] text-blue-700">Dashboard</p>
+            <h1 className="mt-2 text-4xl font-bold tracking-tight text-slate-900">HireFlow</h1>
+            <p className="mt-3 max-w-2xl text-slate-600">
+              Track open roles, matched candidates, and interview activity from one
+              recruiting workspace.
             </p>
+            <div className="mt-6 grid gap-4 md:grid-cols-3">
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <p className="text-xs uppercase text-slate-500">Open Positions</p>
+                <p className="mt-2 text-2xl font-semibold text-slate-900">12</p>
+              </div>
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <p className="text-xs uppercase text-slate-500">Active Candidates</p>
+                <p className="mt-2 text-2xl font-semibold text-slate-900">148</p>
+              </div>
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <p className="text-xs uppercase text-slate-500">Calls Scheduled</p>
+                <p className="mt-2 text-2xl font-semibold text-slate-900">27</p>
+              </div>
+            </div>
           </div>
-        </div>
+
+          <div className="mt-5 rounded-2xl border border-slate-200 bg-white/85 p-6 shadow-sm">
+            <h2 className="text-xl font-semibold text-slate-900">Quick Actions</h2>
+            <div className="mt-4 flex flex-wrap gap-3">
+              <Link
+                href="/manage-jobs"
+                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+              >
+                Manage Jobs
+              </Link>
+              <Link
+                href="/all-candidates"
+                className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              >
+                View Candidates
+              </Link>
+            </div>
+          </div>
+        </section>
       </main>
     </div>
   );

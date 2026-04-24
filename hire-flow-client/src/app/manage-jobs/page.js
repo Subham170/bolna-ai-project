@@ -197,18 +197,35 @@ export default function ManageJobsPage() {
         </SidebarContent>
       </Sidebar>
 
-      <main className="flex flex-1 p-8">
-        <section className="w-full p-6">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight text-slate-900">Manage Jobs</h1>
-              <p className="mt-2 text-sm text-slate-600">
-                All jobs fetched from your backend database.
-              </p>
+      <main className="flex flex-1 p-6 md:p-8">
+        <section className="w-full">
+          <div className="rounded-2xl border border-slate-200 bg-white/85 p-6 shadow-sm">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="text-xs uppercase tracking-[0.2em] text-blue-700">Jobs</p>
+                <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">Manage Jobs</h1>
+                <p className="mt-2 text-sm text-slate-600">
+                  Create, review, and open detailed AI match views for each role.
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button variant="outline">Filters</Button>
+                <Button onClick={() => setIsDialogOpen(true)}>+ Add Job Posting</Button>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline">Filters</Button>
-              <Button onClick={() => setIsDialogOpen(true)}>+ Add Job Posting</Button>
+            <div className="mt-5 grid gap-3 sm:grid-cols-3">
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                <p className="text-xs uppercase text-slate-500">Total Jobs</p>
+                <p className="mt-1 text-xl font-semibold text-slate-900">{parsedRows.length}</p>
+              </div>
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                <p className="text-xs uppercase text-slate-500">Visible</p>
+                <p className="mt-1 text-xl font-semibold text-slate-900">{filteredRows.length}</p>
+              </div>
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                <p className="text-xs uppercase text-slate-500">Status</p>
+                <p className="mt-1 text-xl font-semibold text-emerald-600">Open</p>
+              </div>
             </div>
           </div>
           {errorMessage ? (
@@ -224,13 +241,13 @@ export default function ManageJobsPage() {
               No jobs found in the database.
             </div>
           ) : (
-            <div className="mt-4">
-              <div className="flex items-center justify-end border-b border-slate-200 p-3">
+            <div className="mt-5 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+              <div className="flex items-center justify-end border-b border-slate-200 bg-slate-50/70 p-3">
                 <Input
                   value={searchTerm}
                   onChange={(event) => setSearchTerm(event.target.value)}
                   placeholder="Search..."
-                  className="max-w-xs"
+                  className="max-w-xs bg-white"
                 />
               </div>
               <Table>

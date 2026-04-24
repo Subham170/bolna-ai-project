@@ -69,6 +69,22 @@ const getScoreBarClass = (score) => {
   return "bg-rose-500";
 };
 
+const getStatusPillClass = (status) => {
+  if (status === "SCREENING_SCORE") return "bg-indigo-100 text-indigo-700";
+  if (status === "QUALIFIED") return "bg-emerald-100 text-emerald-700";
+  if (status === "REJECTED") return "bg-rose-100 text-rose-700";
+  if (status === "CALLED") return "bg-blue-100 text-blue-700";
+  return "bg-slate-100 text-slate-700";
+};
+
+const getInitials = (name = "") =>
+  String(name)
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("");
+
 export default function ManageJobDetailsPage() {
   const params = useParams();
   const jobId = params?.id;
@@ -190,9 +206,9 @@ export default function ManageJobDetailsPage() {
         </SidebarContent>
       </Sidebar>
 
-      <main className="flex flex-1 p-8">
+      <main className="flex flex-1 p-6 md:p-8">
         <section className="w-full p-6">
-          <Link href="/manage-jobs" className="text-sm text-blue-700 hover:underline">
+          <Link href="/manage-jobs" className="text-sm font-medium text-blue-700 hover:underline">
             ← Back to Manage Jobs
           </Link>
 
@@ -210,43 +226,55 @@ export default function ManageJobDetailsPage() {
             </div>
           ) : (
             <>
-              <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                <div>
-                  <p className="text-xs uppercase text-slate-500">Job Role</p>
-                  <p className="mt-1 text-lg font-semibold text-slate-900">{job.title || "-"}</p>
+              <div className="mt-4 rounded-2xl border border-slate-200 bg-white/85 p-5 shadow-sm">
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                  <div>
+                    <h1 className="text-3xl font-bold tracking-tight text-slate-900">
+                      {job.title || "-"}
+                    </h1>
+                    <p className="mt-1 text-sm text-slate-500">{job.company || "-"}</p>
+                  </div>
+                  <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
+                    OPEN
+                  </span>
                 </div>
-                <div>
-                  <p className="text-xs uppercase text-slate-500">Company</p>
-                  <p className="mt-1 text-sm text-slate-700">{job.company || "-"}</p>
-                </div>
-                <div>
-                  <p className="text-xs uppercase text-slate-500">CTC Range</p>
-                  <p className="mt-1 text-sm text-slate-700">{job.ctc || "-"}</p>
-                </div>
-                <div>
-                  <p className="text-xs uppercase text-slate-500">Experience</p>
-                  <p className="mt-1 text-sm text-slate-700">
-                    {typeof job.exp_req === "number" ? `${job.exp_req} years` : "-"}
-                  </p>
+                <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-slate-500">Department</p>
+                    <p className="mt-1 text-sm font-medium text-slate-700">
+                      {(job.role || []).join(", ") || "General"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-slate-500">Account</p>
+                    <p className="mt-1 text-sm font-medium text-slate-700">{job.company || "-"}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-slate-500">Experience</p>
+                    <p className="mt-1 text-sm font-medium text-slate-700">
+                      {typeof job.exp_req === "number" ? `${job.exp_req} years` : "-"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-slate-500">CTC Range</p>
+                    <p className="mt-1 text-sm font-medium text-slate-700">{job.ctc || "-"}</p>
+                  </div>
                 </div>
               </div>
 
-              <div className="mt-6">
-                <h2 className="text-2xl font-semibold text-slate-900">
-                  AI Candidate Matches (Skill Matched)
-                </h2>
-                <p className="mt-1 text-sm text-slate-600">
-                  Showing only candidates whose skills match this job.
-                </p>
-              </div>
-
-              <div className="mt-4">
-                <div className="flex items-center justify-end border-b border-slate-200 p-3">
+              <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-4 py-3">
+                  <div>
+                    <h2 className="text-lg font-semibold text-slate-900">AI Candidate Matches</h2>
+                    <p className="text-xs text-slate-500">
+                      Showing only candidates with skill overlap
+                    </p>
+                  </div>
                   <Input
                     value={searchTerm}
                     onChange={(event) => setSearchTerm(event.target.value)}
                     placeholder="Search matched candidates..."
-                    className="max-w-xs"
+                    className="max-w-xs bg-slate-50"
                   />
                 </div>
                 <Table>
@@ -277,9 +305,17 @@ export default function ManageJobDetailsPage() {
                         const isCalling = callingCandidateId === candidate._id;
                         const transcriptText = entry?.callRecord?.transcript || "";
                         return (
-                          <TableRow key={candidate._id || `${candidate.email}-${entry.matchPercent}`}>
+                          <TableRow
+                            key={candidate._id || `${candidate.email}-${entry.matchPercent}`}
+                            className="hover:bg-slate-50/80"
+                          >
                             <TableCell className="font-medium text-slate-900">
-                              {candidate.name || "-"}
+                              <div className="flex items-center gap-2">
+                                <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-cyan-100 text-xs font-semibold text-cyan-700">
+                                  {getInitials(candidate.name) || "NA"}
+                                </span>
+                                <span>{candidate.name || "-"}</span>
+                              </div>
                             </TableCell>
                             <TableCell>{(entry.matchedSkills || []).join(", ") || "-"}</TableCell>
                             <TableCell>
@@ -310,7 +346,11 @@ export default function ManageJobDetailsPage() {
                                 : "-"}
                             </TableCell>
                             <TableCell>
-                              <span className="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-700">
+                              <span
+                                className={`rounded-full px-2 py-1 text-xs font-medium ${getStatusPillClass(
+                                  candidate.status
+                                )}`}
+                              >
                                 {formatCandidateStatus(candidate.status)}
                               </span>
                             </TableCell>
@@ -346,11 +386,11 @@ export default function ManageJobDetailsPage() {
 
       <Dialog open={isTranscriptOpen}>
         <DialogOverlay onClick={() => setIsTranscriptOpen(false)} />
-        <DialogContent className="max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Call Transcript</DialogTitle>
+        <DialogContent className="max-h-[80vh] overflow-y-auto border-slate-200 bg-slate-50">
+          <DialogHeader className="border-b border-slate-200 pb-3">
+            <DialogTitle className="text-xl">Candidate Call Transcript</DialogTitle>
           </DialogHeader>
-          <div className="space-y-3">
+          <div className="space-y-3 py-2">
             {transcriptPreview
               .split(/\r?\n/)
               .map((line) => line.trim())
@@ -365,7 +405,7 @@ export default function ManageJobDetailsPage() {
                   : "justify-start";
                 const bubbleClass = isCandidate
                   ? "bg-blue-600 text-white"
-                  : "bg-slate-100 text-slate-800";
+                  : "bg-white text-slate-800 ring-1 ring-slate-200";
                 return (
                   <div key={`${line}-${index}`} className={`flex ${alignClass}`}>
                     <div className={`max-w-[85%] rounded-lg px-3 py-2 text-sm ${bubbleClass}`}>
@@ -374,6 +414,11 @@ export default function ManageJobDetailsPage() {
                   </div>
                 );
               })}
+            {!transcriptPreview.trim() ? (
+              <div className="rounded-lg border border-slate-200 bg-white p-3 text-sm text-slate-500">
+                Transcript is not available.
+              </div>
+            ) : null}
           </div>
         </DialogContent>
       </Dialog>
