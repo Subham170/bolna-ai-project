@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   FaBriefcase,
   FaCalendarAlt,
@@ -69,6 +70,7 @@ const initialForm = {
 };
 
 export default function ManageJobsPage() {
+  const router = useRouter();
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
@@ -243,9 +245,34 @@ export default function ManageJobsPage() {
                 </TableHeader>
                 <TableBody>
                   {filteredRows.map((job) => (
-                    <TableRow key={job._id || job.id}>
+                    <TableRow
+                      key={job._id || job.id}
+                      className={job._id ? "cursor-pointer" : ""}
+                      onClick={() => {
+                        if (job._id) router.push(`/manage-jobs/${job._id}`);
+                      }}
+                      onKeyDown={(event) => {
+                        if (!job._id) return;
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          router.push(`/manage-jobs/${job._id}`);
+                        }
+                      }}
+                      tabIndex={job._id ? 0 : -1}
+                      role={job._id ? "link" : undefined}
+                    >
                       <TableCell className="font-medium text-slate-900">
-                        {job.title || "Untitled Job"}
+                        {job._id ? (
+                          <Link
+                            href={`/manage-jobs/${job._id}`}
+                            className="text-blue-700 hover:underline"
+                            onClick={(event) => event.stopPropagation()}
+                          >
+                            {job.title || "Untitled Job"}
+                          </Link>
+                        ) : (
+                          job.title || "Untitled Job"
+                        )}
                       </TableCell>
                       <TableCell>{job.company || "-"}</TableCell>
                       <TableCell>

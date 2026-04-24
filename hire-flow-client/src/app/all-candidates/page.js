@@ -49,6 +49,11 @@ const iconByLabel = {
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
 
+const formatCandidateStatus = (status) => {
+  if (status === "SCREENING_SCORE") return "Screening Score";
+  return status || "PENDING_CALL";
+};
+
 export default function AllCandidatesPage() {
   const [candidates, setCandidates] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -184,7 +189,7 @@ export default function AllCandidatesPage() {
                       </TableCell>
                       <TableCell>
                         <span className="rounded-full bg-cyan-500 px-2 py-1 text-xs font-medium text-white">
-                          {candidate.status || "PENDING_CALL"}
+                          {formatCandidateStatus(candidate.status)}
                         </span>
                       </TableCell>
                       <TableCell>{(candidate.skills || []).join(", ") || "-"}</TableCell>

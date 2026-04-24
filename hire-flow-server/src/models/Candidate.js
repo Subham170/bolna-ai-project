@@ -58,7 +58,14 @@ const candidateSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["PENDING_CALL", "CALLED", "SCORED", "QUALIFIED", "REJECTED"],
+      enum: [
+        "PENDING_CALL",
+        "CALLED",
+        "SCREENING_SCORE",
+        "SCORED",
+        "QUALIFIED",
+        "REJECTED",
+      ],
       default: "PENDING_CALL",
     },
   },

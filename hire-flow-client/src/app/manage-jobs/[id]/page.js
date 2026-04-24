@@ -1,0 +1,382 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import {
+  FaBriefcase,
+  FaCalendarAlt,
+  FaCog,
+  FaTasks,
+  FaTachometerAlt,
+  FaUsers,
+} from "react-icons/fa";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogOverlay,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+
+const navItems = [
+  { label: "Dashboard", href: "/" },
+  { label: "Manage Jobs", href: "/manage-jobs" },
+  { label: "All Candidates", href: "/all-candidates" },
+  { label: "My Tasks", href: "#" },
+  { label: "Calendar", href: "#" },
+  { label: "Settings", href: "#" },
+];
+
+const iconByLabel = {
+  Dashboard: FaTachometerAlt,
+  "Manage Jobs": FaBriefcase,
+  "All Candidates": FaUsers,
+  "My Tasks": FaTasks,
+  Calendar: FaCalendarAlt,
+  Settings: FaCog,
+};
+
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+
+const formatCandidateStatus = (status) => {
+  if (status === "SCREENING_SCORE") return "Screening Score";
+  return status || "PENDING_CALL";
+};
+
+const getScoreBarClass = (score) => {
+  if (score >= 80) return "bg-emerald-500";
+  if (score >= 60) return "bg-blue-500";
+  if (score >= 40) return "bg-amber-500";
+  return "bg-rose-500";
+};
+
+export default function ManageJobDetailsPage() {
+  const params = useParams();
+  const jobId = params?.id;
+
+  const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [job, setJob] = useState(null);
+  const [matches, setMatches] = useState([]);
+  const [callingCandidateId, setCallingCandidateId] = useState("");
+  const [isTranscriptOpen, setIsTranscriptOpen] = useState(false);
+  const [transcriptPreview, setTranscriptPreview] = useState("");
+
+  const fetchJobDetails = async () => {
+    if (!jobId) return;
+    try {
+      setLoading(true);
+      setErrorMessage("");
+      const response = await fetch(`${BACKEND_URL}/api/jobs/${jobId}/matches`, {
+        cache: "no-store",
+      });
+      if (!response.ok) {
+        throw new Error("Unable to load job details");
+      }
+      const data = await response.json();
+      setJob(data?.job || null);
+      setMatches(Array.isArray(data?.matches) ? data.matches : []);
+    } catch (error) {
+      setErrorMessage(error?.message || "Failed to fetch job details");
+      setJob(null);
+      setMatches([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchJobDetails();
+  }, [jobId]);
+
+  const skillMatchedCandidates = useMemo(
+    () =>
+      matches.filter(
+        (entry) => Array.isArray(entry.matchedSkills) && entry.matchedSkills.length > 0
+      ),
+    [matches]
+  );
+
+  const filteredRows = useMemo(() => {
+    const query = searchTerm.trim().toLowerCase();
+    if (!query) return skillMatchedCandidates;
+    return skillMatchedCandidates.filter((entry) => {
+      const candidate = entry.candidate || {};
+      const haystack = [
+        candidate.name,
+        candidate.email,
+        candidate.phone_no,
+        ...(candidate.skills || []),
+        ...(entry.matchedSkills || []),
+      ]
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(query);
+    });
+  }, [skillMatchedCandidates, searchTerm]);
+
+  const openTranscriptModal = (transcriptText) => {
+    setTranscriptPreview(transcriptText || "");
+    setIsTranscriptOpen(true);
+  };
+
+  const handleInitiateCall = async (candidateId) => {
+    if (!candidateId || !jobId) return;
+    try {
+      setCallingCandidateId(candidateId);
+      setErrorMessage("");
+      const response = await fetch(`${BACKEND_URL}/api/calls/initiate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ candidateId, jobId }),
+      });
+      if (!response.ok) {
+        const errorBody = await response.json().catch(() => ({}));
+        throw new Error(errorBody.message || "Failed to initiate call");
+      }
+      await fetchJobDetails();
+    } catch (error) {
+      setErrorMessage(error?.message || "Unable to initiate call");
+    } finally {
+      setCallingCandidateId("");
+    }
+  };
+
+  return (
+    <div className="flex min-h-screen bg-linear-to-br from-slate-100 to-slate-200 text-slate-900">
+      <Sidebar className="min-h-screen">
+        <SidebarHeader>
+          <div className="text-2xl font-bold tracking-wide text-blue-700">HireFlow</div>
+          <p className="mt-1 text-xs uppercase tracking-[0.25em] text-slate-500">
+            Recruitment Suite
+          </p>
+        </SidebarHeader>
+        <SidebarContent>
+          <SidebarMenu>
+            {navItems.map((item) => (
+              <SidebarMenuItem key={item.label}>
+                <Link href={item.href}>
+                  <SidebarMenuButton isActive={item.label === "Manage Jobs"}>
+                    {(() => {
+                      const Icon = iconByLabel[item.label];
+                      return Icon ? <Icon className="text-sm" /> : null;
+                    })()}
+                    {item.label}
+                  </SidebarMenuButton>
+                </Link>
+              </SidebarMenuItem>
+            ))}
+          </SidebarMenu>
+        </SidebarContent>
+      </Sidebar>
+
+      <main className="flex flex-1 p-8">
+        <section className="w-full p-6">
+          <Link href="/manage-jobs" className="text-sm text-blue-700 hover:underline">
+            ← Back to Manage Jobs
+          </Link>
+
+          {errorMessage ? (
+            <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+              {errorMessage}
+            </div>
+          ) : loading ? (
+            <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+              Loading job details...
+            </div>
+          ) : !job ? (
+            <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+              Job not found.
+            </div>
+          ) : (
+            <>
+              <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                <div>
+                  <p className="text-xs uppercase text-slate-500">Job Role</p>
+                  <p className="mt-1 text-lg font-semibold text-slate-900">{job.title || "-"}</p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase text-slate-500">Company</p>
+                  <p className="mt-1 text-sm text-slate-700">{job.company || "-"}</p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase text-slate-500">CTC Range</p>
+                  <p className="mt-1 text-sm text-slate-700">{job.ctc || "-"}</p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase text-slate-500">Experience</p>
+                  <p className="mt-1 text-sm text-slate-700">
+                    {typeof job.exp_req === "number" ? `${job.exp_req} years` : "-"}
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-6">
+                <h2 className="text-2xl font-semibold text-slate-900">
+                  AI Candidate Matches (Skill Matched)
+                </h2>
+                <p className="mt-1 text-sm text-slate-600">
+                  Showing only candidates whose skills match this job.
+                </p>
+              </div>
+
+              <div className="mt-4">
+                <div className="flex items-center justify-end border-b border-slate-200 p-3">
+                  <Input
+                    value={searchTerm}
+                    onChange={(event) => setSearchTerm(event.target.value)}
+                    placeholder="Search matched candidates..."
+                    className="max-w-xs"
+                  />
+                </div>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Candidate</TableHead>
+                      <TableHead>Role</TableHead>
+                      <TableHead>Score</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Phone</TableHead>
+                      <TableHead>Experience</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Call</TableHead>
+                      <TableHead className="text-right">Transcript</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredRows.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={9} className="text-center text-slate-500">
+                          No skill-matched candidates found for this job.
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      filteredRows.map((entry) => {
+                        const candidate = entry.candidate || {};
+                        const hasTranscript = Boolean(entry?.callRecord?.transcript?.trim?.());
+                        const isCalling = callingCandidateId === candidate._id;
+                        const transcriptText = entry?.callRecord?.transcript || "";
+                        return (
+                          <TableRow key={candidate._id || `${candidate.email}-${entry.matchPercent}`}>
+                            <TableCell className="font-medium text-slate-900">
+                              {candidate.name || "-"}
+                            </TableCell>
+                            <TableCell>{(entry.matchedSkills || []).join(", ") || "-"}</TableCell>
+                            <TableCell>
+                              <div className="w-24">
+                                <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-200">
+                                  <div
+                                    className={`h-full rounded-full ${getScoreBarClass(
+                                      entry.matchPercent ?? 0
+                                    )}`}
+                                    style={{
+                                      width: `${Math.max(
+                                        0,
+                                        Math.min(100, Number(entry.matchPercent) || 0)
+                                      )}%`,
+                                    }}
+                                  />
+                                </div>
+                                <p className="mt-1 text-xs font-medium text-slate-700">
+                                  {entry.matchPercent ?? 0}%
+                                </p>
+                              </div>
+                            </TableCell>
+                            <TableCell>{candidate.email || "-"}</TableCell>
+                            <TableCell>{candidate.phone_no || "-"}</TableCell>
+                            <TableCell>
+                              {typeof candidate.experience === "number"
+                                ? `${candidate.experience} years`
+                                : "-"}
+                            </TableCell>
+                            <TableCell>
+                              <span className="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-700">
+                                {formatCandidateStatus(candidate.status)}
+                              </span>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <Button
+                                variant={hasTranscript ? "outline" : "default"}
+                                disabled={hasTranscript || isCalling || !candidate._id}
+                                onClick={() => handleInitiateCall(candidate._id)}
+                              >
+                                {hasTranscript ? "Called" : isCalling ? "Calling..." : "Call"}
+                              </Button>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <Button
+                                variant="outline"
+                                disabled={!hasTranscript}
+                                onClick={() => openTranscriptModal(transcriptText)}
+                              >
+                                Transcript
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </>
+          )}
+        </section>
+      </main>
+
+      <Dialog open={isTranscriptOpen}>
+        <DialogOverlay onClick={() => setIsTranscriptOpen(false)} />
+        <DialogContent className="max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Call Transcript</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            {transcriptPreview
+              .split(/\r?\n/)
+              .map((line) => line.trim())
+              .filter(Boolean)
+              .map((line, index) => {
+                const isAgent = /agent|interviewer|bot/i.test(line);
+                const isCandidate = /candidate|user/i.test(line);
+                const alignClass = isAgent
+                  ? "justify-start"
+                  : isCandidate
+                  ? "justify-end"
+                  : "justify-start";
+                const bubbleClass = isCandidate
+                  ? "bg-blue-600 text-white"
+                  : "bg-slate-100 text-slate-800";
+                return (
+                  <div key={`${line}-${index}`} className={`flex ${alignClass}`}>
+                    <div className={`max-w-[85%] rounded-lg px-3 py-2 text-sm ${bubbleClass}`}>
+                      {line}
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

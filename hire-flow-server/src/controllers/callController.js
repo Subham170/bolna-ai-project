@@ -37,12 +37,8 @@ const scoreCandidateWithTranscript = async ({ candidate, transcript, jobId = nul
     { new: true, upsert: true, setDefaultsOnInsert: true }
   );
 
-  candidate.status =
-    aiResult.recommendation === "STRONG_YES"
-      ? "QUALIFIED"
-      : aiResult.recommendation === "NO"
-      ? "REJECTED"
-      : "SCORED";
+  // Once transcript is scored, candidate moves to screening score round.
+  candidate.status = "SCREENING_SCORE";
 
   await candidate.save();
 
@@ -187,11 +183,30 @@ const syncBolnaExecution = async (req, res) => {
 
     await callRecord.save();
 
+    const transcriptForScoring =
+      typeof transcript === "string" && transcript.trim() ? transcript.trim() : callRecord.transcript || "";
+    const disconnectedStatuses = ["completed", "disconnected", "ended", "done", "finished"];
+    const shouldScore =
+      transcriptForScoring.length > 0 &&
+      disconnectedStatuses.includes(String(callRecord.bolna?.status || "").toLowerCase());
+
+    if (shouldScore) {
+      const candidate = await Candidate.findById(callRecord.candidate);
+      if (candidate) {
+        await scoreCandidateWithTranscript({
+          candidate,
+          transcript: transcriptForScoring,
+          jobId: callRecord.job || candidate.job || null,
+        });
+      }
+    }
+
     return res.json({
       message: "Bolna execution synced",
       executionId,
       hasTranscript: Boolean(transcript.trim()),
       status: callRecord.bolna.status,
+      scored: shouldScore,
     });
   } catch (error) {
     return res.status(500).json({ message: error.message });
